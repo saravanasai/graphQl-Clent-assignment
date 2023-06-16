@@ -1,0 +1,18 @@
+{
+  "applications": [
+    {
+      "app_name": "Blik ke",
+      "division": 2,
+      "country": "ca",
+      "language": "Catalan",
+      "id": 8
+    },
+    {
+      "app_name": "Ledex",
+      "division": 2,
+      "country": "ca",
+      "language": "Catalan",
+      "id": 9
+    }
+  ]
+}
