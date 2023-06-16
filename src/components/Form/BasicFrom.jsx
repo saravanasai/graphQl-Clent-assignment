@@ -43,11 +43,7 @@ const BasicFrom = () => {
 
 
 
-    const handleChange = (e) => {
-        setFormState(prev => {
-            return { ...prev, [e.target.name]: e.target.value }
-        })
-    }
+  
 
 
     const validateInputs = () => {
@@ -73,6 +69,18 @@ const BasicFrom = () => {
         setErrors(errors)
         return errors;
 
+    }
+
+    const handleOnBlur = () => {
+        validateInputs()
+    }
+
+    const handleChange = (e) => {
+
+        validateInputs()
+        setFormState(prev => {
+            return { ...prev, [e.target.name]: e.target.value }
+        })
     }
 
     const handleSearchId = (e, newValue) => {
@@ -289,15 +297,16 @@ const BasicFrom = () => {
                                         value={fromState.app_name}
                                         error={errors.app_name ? true : false}
                                         helperText={errors.app_name}
+                                        onBlur={handleOnBlur}
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
                                     <DivisonSelectBox name={"division"} value={fromState.division} onChange={handleChange} error={errors.division ? true : false}
-                                        helperText={errors.division} />
+                                        helperText={errors.division}  onBlur={handleOnBlur} />
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
                                     <ConutrySelectBox name={"country"} value={fromState.country} onChange={handleChange} error={errors.country ? true : false}
-                                        helperText={errors.country} />
+                                        helperText={errors.country}  onBlur={handleOnBlur} />
                                 </Grid>
                                 <Grid item xs={12} sm={6} >
                                     <TextField

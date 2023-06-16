@@ -38,7 +38,7 @@ const DivisonSelectBox = ({name,value,onChange,onBlur,helperText,error}) => {
             >
                 {division.map(({ id, value }) => (<MenuItem key={id} value={id}>{value}</MenuItem>))}
             </Select>
-            <FormHelperText>{helperText}</FormHelperText>
+            <FormHelperText>{helperText ? helperText : ''}</FormHelperText>
         </FormControl>
     )
 }
