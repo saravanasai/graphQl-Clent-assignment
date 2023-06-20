@@ -1,5 +1,5 @@
 
-import { Autocomplete, Box, Button, Grid, Paper, TextField } from '@mui/material'
+import { Autocomplete, Box, Button, FormControl, FormHelperText, Grid, InputLabel, MenuItem, OutlinedInput, Paper, Select, TextField, useTheme } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useQuery, gql } from '@apollo/client';
 import axios from 'axios';
@@ -7,8 +7,31 @@ import DivisonSelectBox from '../Inputs/DivisonSelectBox';
 import ConutrySelectBox from '../Inputs/ConutrySelectBox';
 import { toast } from 'react-toastify';
 
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+    PaperProps: {
+        style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+            width: 250,
+        },
+    },
+};
+
+
+function getStyles(name, personName, theme) {
+    return {
+        fontWeight:
+            personName.indexOf(name) === -1
+                ? theme.typography.fontWeightRegular
+                : theme.typography.fontWeightMedium,
+    };
+}
+
 const BasicFrom = () => {
 
+    const theme = useTheme();
+    const [languesName, setLanguesName] = React.useState([]);
 
     const [fromState, setFormState] = useState({
         searchId: 0,
@@ -16,20 +39,23 @@ const BasicFrom = () => {
         app_name: "",
         division: 0,
         country: "",
-        language: ""
+        language: []
     })
 
     const [errors, setErrors] = useState({
         app_name: "",
         division: 0,
         country: "",
+        language: ""
     })
 
     const GET_LANGUAGE = gql`
     query {
-        language(code:"${fromState.country}"){
-            name,
-            code
+        country(code:"${fromState.country.toUpperCase()}") {
+          name
+          languages{
+            name
+          }
         }
       }
     `;
@@ -41,22 +67,25 @@ const BasicFrom = () => {
 
 
 
-
-
-  
-
+    const handleMultiSelectChange = (event) => {
+        const {
+            target: { value },
+        } = event;
+        setLanguesName(
+            typeof value === 'string' ? value.split(',') : value,
+        );
+    };
 
     const validateInputs = () => {
 
         const errors = {};
-        console.log(!( /^[A-Za-z0-9_-]*$$/i.test(fromState.app_name)))
         if (!fromState.app_name) {
             errors.app_name = "Required";
         } else if (
-           !( /^[A-Za-z0-9_-]*$$/i.test(fromState.app_name))
-          ) {
+            !(/^[A-Za-z0-9_-]*$$/i.test(fromState.app_name))
+        ) {
             errors.app_name = 'Invalid Application name    ';
-          }
+        }
 
         if (!fromState.division) {
             errors.division = "Required";
@@ -64,6 +93,10 @@ const BasicFrom = () => {
 
         if (!fromState.country) {
             errors.country = "Required";
+        }
+
+        if (fromState.language.length === 0) {
+            errors.language = "Required";
         }
 
         setErrors(errors)
@@ -76,7 +109,6 @@ const BasicFrom = () => {
     }
 
     const handleChange = (e) => {
-
         validateInputs()
         setFormState(prev => {
             return { ...prev, [e.target.name]: e.target.value }
@@ -85,11 +117,9 @@ const BasicFrom = () => {
 
     const handleSearchId = (e, newValue) => {
         setFormState(prev => {
-
             return { ...prev, searchId: newValue?.id ?? null }
         })
     }
-
 
     const clearInputs = () => {
         setFormState(() => {
@@ -115,23 +145,26 @@ const BasicFrom = () => {
         }
     }
 
-
     const handlFetchLanguage = async () => {
 
         const GET_LANGUAGE_REFETCH = gql`
         query {
-            language(code:"${fromState.country}"){
-                name,
-                code
+            country(code:"${fromState.country.toUpperCase()}") {
+              name
+              languages{
+                name
+              }
             }
-        }
+          }
         `;
 
         const { data } = await refetch(GET_LANGUAGE, GET_LANGUAGE_REFETCH)
 
-        if (data.language) {
+        if (data.country.languages) {
             setFormState(prev => {
-                return { ...prev, language: data.language.name }
+                let tempArr = [];
+                data.country.languages.map(({ name }) => tempArr.push(name))
+                return { ...prev, language: tempArr }
             })
         } else {
             setFormState(prev => {
@@ -169,7 +202,6 @@ const BasicFrom = () => {
 
     }
 
-
     const handleCreate = async () => {
 
         let error = validateInputs()
@@ -191,7 +223,6 @@ const BasicFrom = () => {
 
 
     }
-
 
     const handleUpdate = async () => {
 
@@ -254,7 +285,6 @@ const BasicFrom = () => {
     }, [fetch])
 
 
-
     return (
         <Paper elevation={3}>
             <Box
@@ -267,9 +297,7 @@ const BasicFrom = () => {
                     flexDirection: 'column',
                 }}
             >
-
                 {isLoading ? <>Loading.....</> :
-
                     <Box component="section" sx={{ mt: 5, mb: 10 }}>
                         <Grid container style={{ marginBottom: 30 }} spacing={2} justifyContent="flex-end">
                             <Grid item xs={12} sm={6}>
@@ -302,22 +330,37 @@ const BasicFrom = () => {
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
                                     <DivisonSelectBox name={"division"} value={fromState.division} onChange={handleChange} error={errors.division ? true : false}
-                                        helperText={errors.division}  onBlur={handleOnBlur} />
+                                        helperText={errors.division} onBlur={handleOnBlur} />
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
                                     <ConutrySelectBox name={"country"} value={fromState.country} onChange={handleChange} error={errors.country ? true : false}
-                                        helperText={errors.country}  onBlur={handleOnBlur} />
+                                        helperText={errors.country} onBlur={handleOnBlur} />
                                 </Grid>
                                 <Grid item xs={12} sm={6} >
-                                    <TextField
-                                        variant="outlined"
-                                        value={fromState.language}
-                                        name="laguuage"
-                                        fullWidth
-                                        id="language"
-                                        label="Language"
-                                        disabled
-                                    />
+                                    <FormControl fullWidth error={errors.language}>
+                                        <InputLabel id="demo-multiple-name-label">Languages</InputLabel>
+                                        <Select
+                                            labelId="demo-multiple-name-label"
+                                            id="demo-multiple-name"
+                                            multiple
+                                            value={languesName}
+                                            onChange={handleMultiSelectChange}
+                                            input={<OutlinedInput label="Languages" />}
+                                            MenuProps={MenuProps}
+                                        >
+                                            {fromState.language.length > 0 && fromState.language.map((name) => (
+                                                <MenuItem
+                                                    key={name}
+                                                    value={name}
+                                                    style={getStyles(name, languesName, theme)}
+                                                >
+                                                    {name}
+                                                </MenuItem>
+                                            ))}
+
+                                        </Select>
+                                        <FormHelperText>{errors.language ? errors.language : ''}</FormHelperText>
+                                    </FormControl>
                                 </Grid>
                             </Grid>
                             <Grid container spacing={2} >
@@ -333,7 +376,6 @@ const BasicFrom = () => {
                                         ADD
                                     </Button>
                                 </Grid>
-
                                 <Grid item xs={12} sm={6} md={4}>
                                     <Button
                                         onClick={() => handleUpdate()}
@@ -346,7 +388,6 @@ const BasicFrom = () => {
                                         UPDATE
                                     </Button>
                                 </Grid>
-
                                 <Grid item xs={12} sm={6} md={4}>
                                     <Button
                                         onClick={() => handleDelete()}
